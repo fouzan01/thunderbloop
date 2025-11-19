@@ -1,136 +1,167 @@
-
 "use client";
 
-import { useState, useEffect } from "react";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  User,
+} from "firebase/auth";
 import { auth, db } from "@/lib/firebaseClient";
 import {
   doc,
+  getDoc,
   setDoc,
   updateDoc,
   increment,
-  getDoc,
 } from "firebase/firestore";
-import { useRouter, useSearchParams } from "next/navigation";
 
 export default function SignupPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [refCode, setRefCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [referrerId, setReferrerId] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Read ?ref= from URL
+  // If already logged in, send to dashboard
   useEffect(() => {
-    const ref = searchParams.get("ref");
-    if (ref) {
-      setReferrerId(ref);
-    }
-  }, [searchParams]);
+    const unsub = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+      if (user) {
+        router.push("/dashboard");
+      }
+    });
 
-  async function handleSignup(e: React.FormEvent) {
+    return () => unsub();
+  }, [router]);
+
+  // Read ?ref=... from URL WITHOUT useSearchParams
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get("ref");
+    if (ref) {
+      setRefCode(ref);
+    }
+  }, []);
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setErrorMsg(null);
     setLoading(true);
-    setError("");
 
     try {
       // 1) Create auth user
-      const userCred = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      const user = cred.user;
 
-      const uid = userCred.user.uid;
+      // 2) Figure out who referred this user (if any)
+      let referredBy: string | null = null;
 
-      // 2) Create user document
-      await setDoc(doc(db, "users", uid), {
-        email,
-        createdAt: new Date(),
-        points: 0,
-        referralCount: 0,
-        referralCode: uid,       // we use uid as referral code
-        referredBy: referrerId || null,
-      });
+      if (refCode) {
+        // In our system the referralCode is the other user's uid.
+        const refDocRef = doc(db, "users", refCode);
+        const refSnap = await getDoc(refDocRef);
 
-      // 3) If someone referred this user, update their stats
-      if (referrerId) {
-        const refDocRef = doc(db, "users", referrerId);
-        const refDocSnap = await getDoc(refDocRef);
+        if (refSnap.exists()) {
+          referredBy = refCode;
 
-        if (refDocSnap.exists()) {
+          // Give the referrer extra points + increment their referral count
           await updateDoc(refDocRef, {
             referralCount: increment(1),
-            points: increment(10), // 👈 each referral = +10 points
+            points: increment(45), // same as you used when testing
           });
         }
       }
 
+      // 3) Create Firestore profile for this new user
+      const userRef = doc(db, "users", user.uid);
+      await setDoc(userRef, {
+        email: user.email,
+        points: 0,
+        referralCount: 0,
+        referralCode: user.uid, // we use uid as referral code
+        referredBy: referredBy,
+        createdAt: new Date().toISOString(),
+      });
+
       // 4) Go to dashboard
       router.push("/dashboard");
     } catch (err: any) {
-      setError(err.message);
+      console.error("Signup error:", err);
+      setErrorMsg(err?.message ?? "Failed to create account.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black text-white">
-      <div className="w-full max-w-md bg-zinc-900/80 border border-zinc-700 rounded-2xl p-8 shadow-2xl">
-        <h1 className="text-2xl font-semibold mb-6 text-center">
-          ThunderBloop – Sign Up
-        </h1>
+    <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-indigo-900 text-white flex items-center justify-center px-4">
+      <div className="w-full max-w-md rounded-2xl bg-zinc-900/80 border border-zinc-800 p-6 shadow-xl">
+        <h1 className="text-2xl font-semibold mb-1">Sign Up</h1>
+        <p className="text-xs text-zinc-400 mb-4">
+          Create your ThunderBloop account.
+          {refCode && (
+            <span className="ml-1 text-emerald-400">
+              You are joining with a referral.
+            </span>
+          )}
+        </p>
 
-        {referrerId && (
-          <p className="mb-4 text-xs text-emerald-400 text-center">
-            You are joining via a referral. Referrer ID: {referrerId}
+        {errorMsg && (
+          <p className="text-xs text-red-400 mb-3 break-words">
+            {errorMsg}
           </p>
         )}
 
-        <form onSubmit={handleSignup} className="space-y-4">
-          <div>
-            <label className="block text-sm mb-1">Email</label>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-1">
+            <label className="text-xs text-zinc-300">Email</label>
             <input
               type="email"
-              className="w-full rounded-md px-3 py-2 bg-zinc-800 border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              required
+              className="w-full px-3 py-2 rounded-md bg-black/40 border border-zinc-700 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
+              placeholder="you@example.com"
             />
           </div>
 
-          <div>
-            <label className="block text-sm mb-1">Password</label>
+          <div className="space-y-1">
+            <label className="text-xs text-zinc-300">Password</label>
             <input
               type="password"
-              className="w-full rounded-md px-3 py-2 bg-zinc-800 border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              required
+              minLength={6}
+              className="w-full px-3 py-2 rounded-md bg-black/40 border border-zinc-700 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
+              placeholder="Create a password"
             />
           </div>
+
+          {refCode && (
+            <p className="text-[11px] text-zinc-500">
+              Referral code detected:{" "}
+              <span className="text-indigo-300 break-all">{refCode}</span>
+            </p>
+          )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 rounded-md bg-indigo-600 hover:bg-indigo-500 font-medium disabled:opacity-60 disabled:cursor-not-allowed transition"
+            className="w-full mt-2 py-2 rounded-md bg-indigo-600 hover:bg-indigo-500 text-sm font-medium disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {loading ? "Creating account..." : "Create Account"}
           </button>
         </form>
 
-        {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
-
-        <p className="mt-4 text-sm text-zinc-400 text-center">
+        <p className="mt-4 text-[11px] text-zinc-500">
           Already have an account?{" "}
-          <a
-            href="/auth/login"
-            className="text-indigo-400 hover:text-indigo-300 underline"
-          >
+          <a href="/auth/login" className="text-indigo-300 hover:underline">
             Log in
           </a>
         </p>
