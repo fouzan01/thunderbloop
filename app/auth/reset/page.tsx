@@ -1,3 +1,4 @@
+// app/auth/reset/page.tsx
 import React, { Suspense } from "react";
 import ResetForm from "./ResetForm";
 
@@ -10,4 +11,3 @@ export default function ResetPage() {
     </main>
   );
 }
-

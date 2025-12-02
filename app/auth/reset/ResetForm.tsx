@@ -1,42 +1,53 @@
+
 "use client";
 
 import React, { useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { sendPasswordResetEmail } from "firebase/auth"; // adjust import if you use a wrapper
-import { auth } from "@/lib/firebaseClient"; // adjust path if needed
+import { sendPasswordResetEmail } from "firebase/auth";
+import { auth } from "@/lib/firebaseClient";
 
+/**
+ * ResetForm - client component that sends a password reset email.
+ * - No explicit JSX.Element return typing to avoid the JSX namespace error.
+ * - Saves a short status/error string to guide the user.
+ */
 export default function ResetForm() {
-  const searchParams = useSearchParams();
-  const token = searchParams?.get("token") ?? ""; // example: if you expect token
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function onSubmit(e: React.FormEvent) {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
     setStatus(null);
+    setError(null);
 
     if (!email || email.trim().length < 5) {
       setError("Enter a valid email address.");
       return;
     }
+
     setLoading(true);
     try {
       await sendPasswordResetEmail(auth, email.trim());
       setStatus("Password reset email sent. Check your inbox/spam.");
       setEmail("");
     } catch (err: any) {
-      setError(err?.message ?? "Failed to send reset email.");
+      const code = err?.code ?? "";
+      if (code === "auth/invalid-email") setError("Invalid email address.");
+      else if (code === "auth/user-not-found")
+        setError("No account found with that email.");
+      else if (code === "auth/too-many-requests")
+        setError("Too many requests. Try again later.");
+      else setError(err?.message ?? "Failed to send reset email.");
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
     <div style={{ maxWidth: 520, margin: "48px auto", padding: 20 }}>
       <h1>Reset your password</h1>
+
       <form onSubmit={onSubmit}>
         <label>
           Email
@@ -48,6 +59,7 @@ export default function ResetForm() {
             style={{ display: "block", width: "100%", padding: 8, marginTop: 8 }}
           />
         </label>
+
         <button type="submit" disabled={loading} style={{ marginTop: 12 }}>
           {loading ? "Sending..." : "Send reset email"}
         </button>
