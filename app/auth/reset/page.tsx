@@ -1,3 +1,5 @@
+
+"use client";
 // app/auth/reset/page.tsx
 
 import React from "react";
