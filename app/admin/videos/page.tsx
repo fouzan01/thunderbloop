@@ -1,28 +1,24 @@
-// app/admin/videos/page.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
 import { collection, addDoc, serverTimestamp, query, orderBy, getDocs } from "firebase/firestore";
-import { db, auth } from "@/lib/firebaseClient"; // <- must exist
+import { db, auth } from "@/lib/firebaseClient";
 import { nanoid } from "nanoid";
 
 export default function AdminVideosPage() {
   const [title, setTitle] = useState("");
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [videos, setVideos] = useState<any[]>([]);
-  const videosRef = collection(db, "videos");
 
   useEffect(() => {
-    // load videos (simple)
     (async () => {
-      const q = query(videosRef, orderBy("createdAt", "desc"));
+      const q = query(collection(db, "videos"), orderBy("createdAt", "desc"));
       const snap = await getDocs(q);
       setVideos(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     })();
   }, []);
 
   function extractVideoId(url: string) {
-    // basic YouTube id extraction
     const m = url.match(/[?&]v=([^&]+)/) || url.match(/youtu\.be\/([^?&]+)/) || url.match(/youtube\.com\/embed\/([^?&]+)/);
     return m ? m[1] : null;
   }
@@ -31,21 +27,21 @@ export default function AdminVideosPage() {
     const vid = extractVideoId(youtubeUrl);
     if (!vid) { alert("Invalid YouTube URL"); return; }
     if (!title) { alert("Add a title"); return; }
-    await addDoc(videosRef, {
+    await addDoc(collection(db, "videos"), {
       videoId: vid,
       title,
       createdAt: serverTimestamp(),
       createdByUid: auth.currentUser?.uid ?? null
     });
     setTitle(""); setYoutubeUrl("");
-    // reload
-    const snap = await getDocs(query(videosRef, orderBy("createdAt", "desc")));
+    const q = query(collection(db, "videos"), orderBy("createdAt", "desc"));
+    const snap = await getDocs(q);
     setVideos(snap.docs.map(d => ({ id: d.id, ...d.data() })));
   };
 
   const createShare = async (videoId: string) => {
     if (!auth.currentUser) {
-      alert("Sign in as admin to create share links.");
+      alert("Sign in to create share links.");
       return;
     }
     const shareId = nanoid(8);

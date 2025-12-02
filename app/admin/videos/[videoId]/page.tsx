@@ -1,8 +1,4 @@
-declare global {
-  interface Window {
-    onYouTubeIframeAPIReady?: () => void;
-  }
-}
+
 // app/video/[videoId]/page.tsx
 "use client";
 
@@ -10,11 +6,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { doc, addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db, auth } from "@/lib/firebaseClient";
-
-declare global {
-  interface Window { YT: any; }
-}
-
 export default function VideoPage({ params }: { params: { videoId: string } }) {
   const { videoId } = params;
   const search = useSearchParams();

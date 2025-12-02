@@ -19,16 +19,18 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// AUTH
+/** Auth exports */
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
-// Persistent login in browser
+/** configure persistence only in the browser */
 if (typeof window !== "undefined") {
-  setPersistence(auth, browserLocalPersistence).catch((err) =>
-    console.warn("Persistence error:", err)
-  );
+  setPersistence(auth, browserLocalPersistence).catch((err) => {
+    // development-only log — safe
+    // eslint-disable-next-line no-console
+    console.warn("Firebase setPersistence failed:", err?.code ?? err?.message ?? err);
+  });
 }
 
-// FIRESTORE
+/** Firestore export */
 export const db = getFirestore(app);
