@@ -1,14 +1,17 @@
+import React, { Suspense } from "react";
 import ResetForm from "./ResetForm";
 
-export const metadata = {
-  title: "Reset password",
-};
-
+/**
+ * Server page for /auth/reset.
+ * This page stays a server component and simply renders the client ResetForm.
+ */
 export default function ResetPage() {
-  // server component: does NOT use any client-only hooks
   return (
-    <main style={{ maxWidth: 760, margin: "48px auto", padding: 20 }}>
-      <ResetForm />
+    <main style={{ padding: 24 }}>
+      <h1>Reset password</h1>
+      <Suspense fallback={<div>Loading...</div>}>
+        <ResetForm />
+      </Suspense>
     </main>
   );
 }

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from "react";
@@ -6,9 +5,8 @@ import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "@/lib/firebaseClient";
 
 /**
- * ResetForm - client component that sends a password reset email.
- * - No explicit JSX.Element return typing to avoid the JSX namespace error.
- * - Saves a short status/error string to guide the user.
+ * Client-only component that sends a password reset email.
+ * Note: this file must keep the "use client" directive at the top.
  */
 export default function ResetForm() {
   const [email, setEmail] = useState("");
@@ -47,7 +45,6 @@ export default function ResetForm() {
   return (
     <div style={{ maxWidth: 520, margin: "48px auto", padding: 20 }}>
       <h1>Reset your password</h1>
-
       <form onSubmit={onSubmit}>
         <label>
           Email
@@ -70,3 +67,4 @@ export default function ResetForm() {
     </div>
   );
 }
+
