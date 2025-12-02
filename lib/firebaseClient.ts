@@ -1,3 +1,4 @@
+// lib/firebaseClient.ts
 import { initializeApp } from "firebase/app";
 import {
   getAuth,
@@ -5,6 +6,7 @@ import {
   browserLocalPersistence,
   setPersistence,
 } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -16,12 +18,17 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+
+// AUTH
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
+// Persistent login in browser
 if (typeof window !== "undefined") {
-  setPersistence(auth, browserLocalPersistence).catch((err) => {
-    // eslint-disable-next-line no-console
-    console.warn("Firebase setPersistence failed:", err?.code ?? err?.message ?? err);
-  });
+  setPersistence(auth, browserLocalPersistence).catch((err) =>
+    console.warn("Persistence error:", err)
+  );
 }
+
+// FIRESTORE
+export const db = getFirestore(app);
