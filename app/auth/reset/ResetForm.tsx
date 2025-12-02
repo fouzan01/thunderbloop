@@ -5,10 +5,10 @@ import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "@/lib/firebaseClient";
 
 /**
- * Client-only component that sends a password reset email.
- * Note: this file must keep the "use client" directive at the top.
+ * Client component for sending a password reset email.
+ * This must be a client component because it uses React hooks and firebase auth.
  */
-export default function ResetForm() {
+export default function ResetForm(): JSX.Element {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -32,10 +32,8 @@ export default function ResetForm() {
     } catch (err: any) {
       const code = err?.code ?? "";
       if (code === "auth/invalid-email") setError("Invalid email address.");
-      else if (code === "auth/user-not-found")
-        setError("No account found with that email.");
-      else if (code === "auth/too-many-requests")
-        setError("Too many requests. Try again later.");
+      else if (code === "auth/user-not-found") setError("No account found with that email.");
+      else if (code === "auth/too-many-requests") setError("Too many requests. Try again later.");
       else setError(err?.message ?? "Failed to send reset email.");
     } finally {
       setLoading(false);
@@ -43,8 +41,7 @@ export default function ResetForm() {
   };
 
   return (
-    <div style={{ maxWidth: 520, margin: "48px auto", padding: 20 }}>
-      <h1>Reset your password</h1>
+    <div style={{ padding: 24 }}>
       <form onSubmit={onSubmit}>
         <label>
           Email
@@ -67,4 +64,3 @@ export default function ResetForm() {
     </div>
   );
 }
-
