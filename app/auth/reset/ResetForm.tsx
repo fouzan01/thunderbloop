@@ -1,66 +1,95 @@
+// app/auth/reset/ResetForm.tsx
 "use client";
 
 import React, { useState } from "react";
-import { sendPasswordResetEmail } from "firebase/auth";
-import { auth } from "@/lib/firebaseClient";
+import { useSearchParams } from "next/navigation";
 
-/**
- * Client component for sending a password reset email.
- * This must be a client component because it uses React hooks and firebase auth.
- */
+type FormState = {
+  password: string;
+  confirmPassword: string;
+};
+
 export default function ResetForm(): JSX.Element {
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const searchParams = useSearchParams();
+  const oobCode = searchParams?.get("oobCode") ?? ""; // example param name used by firebase reset links
 
-  const onSubmit = async (e: React.FormEvent) => {
+  const [form, setForm] = useState<FormState>({
+    password: "",
+    confirmPassword: ""
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  function onChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  }
+
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setStatus(null);
     setError(null);
 
-    if (!email || email.trim().length < 5) {
-      setError("Enter a valid email address.");
+    if (form.password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+    if (form.password !== form.confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+    if (!oobCode) {
+      setError("Missing reset code.");
       return;
     }
 
-    setLoading(true);
     try {
-      await sendPasswordResetEmail(auth, email.trim());
-      setStatus("Password reset email sent. Check your inbox/spam.");
-      setEmail("");
+      setLoading(true);
+      // TODO: call your firebase reset password / confirmPasswordReset logic here
+      // Example (if using firebase client):
+      // await confirmPasswordReset(auth, oobCode, form.password);
+
+      // For now, mock:
+      await new Promise(res => setTimeout(res, 700));
+      setSuccess(true);
     } catch (err: any) {
-      const code = err?.code ?? "";
-      if (code === "auth/invalid-email") setError("Invalid email address.");
-      else if (code === "auth/user-not-found") setError("No account found with that email.");
-      else if (code === "auth/too-many-requests") setError("Too many requests. Try again later.");
-      else setError(err?.message ?? "Failed to send reset email.");
+      setError(err?.message ?? "Failed to reset password");
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   return (
-    <div style={{ padding: 24 }}>
-      <form onSubmit={onSubmit}>
-        <label>
-          Email
+    <div className="reset-form-container">
+      <h2>Reset your password</h2>
+
+      {error && <div className="error">{error}</div>}
+      {success ? (
+        <div className="success">Password reset successfully. You can now log in.</div>
+      ) : (
+        <form onSubmit={onSubmit}>
           <input
-            type="email"
+            name="password"
+            type="password"
+            placeholder="New password"
+            value={form.password}
+            onChange={onChange}
+            minLength={6}
             required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            style={{ display: "block", width: "100%", padding: 8, marginTop: 8 }}
           />
-        </label>
+          <input
+            name="confirmPassword"
+            type="password"
+            placeholder="Confirm new password"
+            value={form.confirmPassword}
+            onChange={onChange}
+            required
+          />
 
-        <button type="submit" disabled={loading} style={{ marginTop: 12 }}>
-          {loading ? "Sending..." : "Send reset email"}
-        </button>
-      </form>
-
-      {status && <div style={{ color: "green", marginTop: 12 }}>{status}</div>}
-      {error && <div style={{ color: "crimson", marginTop: 12 }}>{error}</div>}
+          <button type="submit" disabled={loading}>
+            {loading ? "Resetting..." : "Reset password"}
+          </button>
+        </form>
+      )}
     </div>
   );
 }

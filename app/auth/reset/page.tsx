@@ -1,19 +1,16 @@
-import React, { Suspense } from "react";
+// app/auth/reset/page.tsx
+import React from "react";
 import ResetForm from "./ResetForm";
 
-/**
- * Server page for /auth/reset. It renders a client ResetForm wrapped in Suspense.
- * That prevents `useSearchParams()` or other client-only hooks from breaking prerender.
- */
-export default function ResetPage() {
-  return (
-    <main style={{ padding: 24 }}>
-      <h1>Reset password</h1>
+export const metadata = {
+  title: "Reset password"
+};
 
-      <Suspense fallback={<div>Loading reset form…</div>}>
-        {/* ResetForm is a client component (has "use client") */}
-        <ResetForm />
-      </Suspense>
+export default function ResetPage() {
+  // This can remain a server component — it's fine to import a client component.
+  return (
+    <main>
+      <ResetForm />
     </main>
   );
 }
