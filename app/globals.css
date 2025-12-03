@@ -1,26 +1,58 @@
-@import "tailwindcss";
+/* ---- Landing design additions (paste at end of globals.css) ---- */
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+:root{
+  --accent-1:#ffb86b;
+  --accent-2:#a78bfa;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* animated gradient orb */
+.animated-bg .gradient-orb{
+  position:absolute;
+  inset:-10% -10% auto -10%;
+  height:120vh;
+  background:radial-gradient(800px circle at 20% 30%, rgba(255,180,100,0.14), transparent 8%), radial-gradient(600px circle at 80% 70%, rgba(167,139,250,0.10), transparent 10%), linear-gradient(135deg, rgba(12,18,36,0.8), rgba(7,10,20,0.7));
+  filter: blur(36px);
+  animation: floatOrb 18s linear infinite;
+  transform-origin:center;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* dots layer */
+.dots-layer{ position:absolute; inset:0; pointer-events:none; }
+.dots-layer .dot{ position:absolute; width:6px; height:6px; border-radius:999px; background:rgba(255,255,255,0.06); transform:translateZ(0); animation:drift 14s linear infinite; }
+.dots-layer .dot-0{ left:6%; top:10%; animation-duration:16s; }
+.dots-layer .dot-1{ left:24%; top:18%; animation-duration:12s; }
+.dots-layer .dot-2{ left:42%; top:6%; animation-duration:22s; }
+.dots-layer .dot-3{ left:60%; top:22%; animation-duration:18s; }
+.dots-layer .dot-4{ left:78%; top:12%; animation-duration:26s; }
+.dots-layer .dot-5{ left:90%; top:30%; animation-duration:20s; }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.vignette{ position:absolute; inset:0; background:radial-gradient(60% 50% at 50% 50%, rgba(0,0,0,0) 0%, rgba(0,0,0,0.35) 70%); pointer-events:none; }
+
+/* thumbnail shimmer */
+.thumbnail-shimmer{ position:absolute; inset:0; background:linear-gradient(90deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.03) 45%, rgba(255,255,255,0.02) 100%); mix-blend-mode:overlay; opacity:0; transition:opacity 320ms ease; }
+article:hover .thumbnail-shimmer{ opacity:1; transform:translateX(6px); }
+
+/* reveal entrance */
+[data-reveal]{ opacity:0; transform:translateY(18px) scale(0.995); transition:opacity 600ms cubic-bezier(.2,.9,.2,1), transform 600ms cubic-bezier(.2,.9,.2,1); will-change: transform, opacity; }
+[data-reveal].is-revealed, .is-revealed{ opacity:1; transform:translateY(0) scale(1); }
+
+/* text gradient */
+.text-gradient{ background:linear-gradient(90deg, var(--accent-1), var(--accent-2) 60%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+
+/* animations */
+@keyframes floatOrb{ 0%{ transform:translateY(0) rotate(0deg) scale(1);} 50%{ transform:translateY(-18px) rotate(8deg) scale(1.02);} 100%{ transform:translateY(0) rotate(0deg) scale(1);} }
+@keyframes drift{ 0%{ transform:translateY(0) translateX(0) scale(1); opacity:0.9; } 50%{ transform:translateY(18px) translateX(8px) scale(1.05); opacity:0.6; } 100%{ transform:translateY(0) translateX(0) scale(1); opacity:0.9; } }
+
+/* hero buttons */
+.btn-primary{ background: linear-gradient(90deg, var(--accent-1), var(--accent-2)); color:#081018; box-shadow:0 8px 28px rgba(167,139,250,0.08); }
+.btn-ghost{ background:transparent; }
+
+/* cards */
+.reveal-card{ transition: transform 360ms ease, box-shadow 360ms ease; }
+.reveal-card:hover{ transform:translateY(-6px) scale(1.002); box-shadow:0 18px 40px rgba(2,6,23,0.6); }
+
+/* responsive tweaks */
+@media (max-width:640px){
+  .gradient-orb{ height:80vh; filter:blur(28px); }
+  .dots-layer .dot{ display:none; }
 }
