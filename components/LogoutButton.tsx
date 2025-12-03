@@ -1,34 +1,24 @@
 "use client";
 
-import { auth } from "@/lib/firebaseClient";
-import { useRouter } from "next/navigation";
 import React from "react";
+import { signOut } from "firebase/auth";
+import { auth } from "@/lib/firebaseClient";
 
-export default function LogoutButton({ label = "Logout" }: { label?: string }) {
-  const router = useRouter();
-
-  const onLogout = async () => {
+export default function LogoutButton(): React.ReactElement {
+  async function handleLogout() {
     try {
-      await auth.signOut();
-      router.replace("/auth/login");
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error("Sign out failed:", err);
+      await signOut(auth);
+      // Optionally redirect using next/navigation in a client component
+      // const router = useRouter(); router.push("/auth/login");
+    } catch (e) {
+      // handle error if needed
+      console.error("Sign out failed", e);
     }
-  };
+  }
 
   return (
-    <button
-      onClick={onLogout}
-      style={{
-        padding: "8px 12px",
-        borderRadius: 6,
-        border: "1px solid #ddd",
-        background: "transparent",
-        cursor: "pointer",
-      }}
-    >
-      {label}
+    <button onClick={handleLogout} style={{ padding: "8px 12px" }}>
+      Sign out
     </button>
   );
 }

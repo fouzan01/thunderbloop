@@ -1,17 +1,21 @@
-// app/auth/reset/ResetForm.tsx
 "use client";
 
 import React, { useState } from "react";
 import { useSearchParams } from "next/navigation";
+
+/**
+ * Reset password form (client component).
+ * Replace the TODO section with your firebase confirmPasswordReset call.
+ */
 
 type FormState = {
   password: string;
   confirmPassword: string;
 };
 
-export default function ResetForm(): JSX.Element {
+export default function ResetForm(): React.ReactElement {
   const searchParams = useSearchParams();
-  const oobCode = searchParams?.get("oobCode") ?? ""; // example param name used by firebase reset links
+  const oobCode = searchParams?.get("oobCode") ?? "";
 
   const [form, setForm] = useState<FormState>({
     password: "",
@@ -44,12 +48,15 @@ export default function ResetForm(): JSX.Element {
 
     try {
       setLoading(true);
-      // TODO: call your firebase reset password / confirmPasswordReset logic here
-      // Example (if using firebase client):
-      // await confirmPasswordReset(auth, oobCode, form.password);
 
-      // For now, mock:
+      // TODO: Replace this mock with your firebase confirmPasswordReset logic.
+      // Example for firebase v9 modular:
+      // import { confirmPasswordReset } from "firebase/auth";
+      // await confirmPasswordReset(auth, oobCode, form.password);
+      //
+      // For now we mock a network call:
       await new Promise(res => setTimeout(res, 700));
+
       setSuccess(true);
     } catch (err: any) {
       setError(err?.message ?? "Failed to reset password");
@@ -59,33 +66,54 @@ export default function ResetForm(): JSX.Element {
   }
 
   return (
-    <div className="reset-form-container">
-      <h2>Reset your password</h2>
+    <div style={{ maxWidth: 520, margin: "0 auto", padding: 24 }}>
+      <h2 style={{ marginBottom: 12 }}>Reset your password</h2>
 
-      {error && <div className="error">{error}</div>}
+      {error && (
+        <div style={{ color: "#b00020", marginBottom: 12 }}>{error}</div>
+      )}
+
       {success ? (
-        <div className="success">Password reset successfully. You can now log in.</div>
+        <div style={{ color: "#007700" }}>
+          Password reset successfully. You can now log in.
+        </div>
       ) : (
         <form onSubmit={onSubmit}>
-          <input
-            name="password"
-            type="password"
-            placeholder="New password"
-            value={form.password}
-            onChange={onChange}
-            minLength={6}
-            required
-          />
-          <input
-            name="confirmPassword"
-            type="password"
-            placeholder="Confirm new password"
-            value={form.confirmPassword}
-            onChange={onChange}
-            required
-          />
+          <div style={{ marginBottom: 8 }}>
+            <label style={{ display: "block", marginBottom: 6 }}>New password</label>
+            <input
+              name="password"
+              type="password"
+              placeholder="New password"
+              value={form.password}
+              onChange={onChange}
+              minLength={6}
+              required
+              style={{ width: "100%", padding: 8, boxSizing: "border-box" }}
+            />
+          </div>
 
-          <button type="submit" disabled={loading}>
+          <div style={{ marginBottom: 12 }}>
+            <label style={{ display: "block", marginBottom: 6 }}>Confirm password</label>
+            <input
+              name="confirmPassword"
+              type="password"
+              placeholder="Confirm new password"
+              value={form.confirmPassword}
+              onChange={onChange}
+              required
+              style={{ width: "100%", padding: 8, boxSizing: "border-box" }}
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              padding: "10px 16px",
+              cursor: loading ? "not-allowed" : "pointer"
+            }}
+          >
             {loading ? "Resetting..." : "Reset password"}
           </button>
         </form>
