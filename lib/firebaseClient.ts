@@ -1,6 +1,9 @@
 // lib/firebaseClient.ts
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+// This file is intended for client-side Firebase auth usage.
+// Put it in /lib and import only from client components (pages/components with "use client").
+
+import { initializeApp, getApps } from "firebase/app";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -11,18 +14,24 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-function initFirebase() {
-  try {
-    if (!getApps().length) {
-      initializeApp(firebaseConfig);
-    } else {
-      getApp();
-    }
-  } catch (err) {
-    console.error("Firebase initialization error", err);
-  }
+// Initialize app once
+if (!getApps().length) {
+  initializeApp(firebaseConfig);
 }
 
-initFirebase();
-
+// exports
 export const auth = getAuth();
+export const googleProvider = new GoogleAuthProvider();
+
+/**
+ * Convenience helpers if you want to import them:
+ * - signInWithGoogle()
+ * - signInWithEmail()
+ */
+export async function signInWithGoogle(): Promise<void> {
+  await signInWithPopup(auth, googleProvider);
+}
+
+export async function signInWithEmail(email: string, password: string) {
+  return signInWithEmailAndPassword(auth, email, password);
+}
