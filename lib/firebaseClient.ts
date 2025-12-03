@@ -1,10 +1,9 @@
-// lib/firebaseClient.ts
+// Minimal firebase client scaffold. Add your NEXT_PUBLIC_ env vars to .env.local
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  // <-- Replace with your Firebase project config
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? "",
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ?? "",
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? "",
@@ -17,5 +16,4 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const googleProvider = new GoogleAuthProvider();
-
 export default app;

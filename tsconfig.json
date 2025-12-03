@@ -24,9 +24,7 @@
       "@/*": [
         "./*"
       ]
-    }
-    // intentionally no "types" array so installed @types/* are auto-loaded
-    ,
+    },
     "plugins": [
       {
         "name": "next"
