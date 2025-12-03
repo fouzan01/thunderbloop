@@ -56,3 +56,14 @@ article:hover .thumbnail-shimmer{ opacity:1; transform:translateX(6px); }
   .gradient-orb{ height:80vh; filter:blur(28px); }
   .dots-layer .dot{ display:none; }
 }
+/* Dashboard & login quick styles (append) */
+
+body { background: #0b1220; color: #e6eef8; }
+
+/* center login page card already uses local classes; make minor color tweaks */
+.bg-white\/6 { background-color: rgba(255,255,255,0.06); }
+.border-white\/6 { border-color: rgba(255,255,255,0.06); }
+.bg-white\/5 { background-color: rgba(255,255,255,0.05); }
+
+/* small utility */
+.rounded-xl { border-radius: 12px; }
